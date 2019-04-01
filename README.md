@@ -4,5 +4,5 @@
 ## run
 ```
 // dependencies will be installed on first run
-npm start
+npm start <url> <search word> <depth>
 ```
