@@ -15,7 +15,7 @@ const DEPTH   = args[2];
 let numPagesFound = 0;
 let numPagesVisited = 0;
 let pagesFound = [];
-let pages = [START_WEBSITE];
+let pages = [[START_WEBSITE, 0]];
 let pagesVisited = [];
 
 const url = new URL(START_WEBSITE);
@@ -33,14 +33,16 @@ function crawl(depth) {
   let page = pages.pop();
 
   // if (!page || (depth) > DEPTH) {
-  if (!page) {
+  if (!page || page[1] > DEPTH) {
     console.log(`Crawled ${numPagesVisited} pages. Found ${numPagesFound} with the term '${KEYWORD}':`);
     pagesFound.forEach(p => console.log(p));
     return;
   }
 
-  if (pagesVisited.includes(page)) crawl(depth);
-  else visitPage(page, depth, crawl);
+  let uri = page[0];
+
+  if (pagesVisited.includes(uri)) crawl(depth);
+  else visitPage(uri, depth, crawl);
 }
 
 function visitPage(uri, depth, cb) {
@@ -59,8 +61,10 @@ function visitPage(uri, depth, cb) {
     let idx = text.indexOf(KEYWORD.toLowerCase());
 
     if (idx > -1) {
+      let prefixWord = text.substring(idx-10, idx).trim();
+      let suffixWord = text.substring(idx, idx+10).trim();
       numPagesFound++;
-      pagesFound.push(`${uri} => ${KEYWORD}`);
+      pagesFound.push(`${uri} => '${prefixWord} ${KEYWORD} ${suffixWord}'`);
     }
 
     collectLinks($, depth);
@@ -70,10 +74,10 @@ function visitPage(uri, depth, cb) {
 
 }
 
-function collectLinks($) {
+function collectLinks($, depth) {
   let relativeLinks = $("a[href^='/']");
   relativeLinks.each(function () {
-    pages.push(baseUrl + $(this).attr('href'));
+    pages.push([baseUrl + $(this).attr('href'), depth]);
   });
 }
 
